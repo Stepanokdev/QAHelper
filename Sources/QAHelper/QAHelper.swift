@@ -14,9 +14,9 @@ struct ConsoleModel {
 
 public class QAModel: ObservableObject {
     
-    @Published var console: [ConsoleModel] = []
+    @Published private var console: [ConsoleModel] = []
     
-    func Print(_ string: String?, color: Color = .white) {
+    public func Print(_ string: String?, color: Color = .white) {
         guard let string else { return }
         DispatchQueue.main.async {
             self.console.append(ConsoleModel(text: string, color: color))
