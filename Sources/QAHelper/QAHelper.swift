@@ -37,7 +37,7 @@ public struct QAPanelView<Content: View>: View {
     @State var geometry: GeometryProxy?
     @State private var DragXPosition: CGFloat = 0
     @State private var OldDragXPosition: CGFloat = 0
-    @State private var DragYPosition: CGFloat = 20
+    @State private var DragYPosition: CGFloat = 180
     @State var alignment: Alignment = .topLeading
     @State var padding: Edge.Set = .leading
     private var idiom: UIUserInterfaceIdiom { UIDevice.current.userInterfaceIdiom }
@@ -52,8 +52,6 @@ public struct QAPanelView<Content: View>: View {
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 30, coordinateSpace: .local)
             .onChanged { value in
-                print("x", value.location.x, "y", value.location.y)
-                print("width", geometry!.size.width, "height", geometry!.size.height)
                     DragYPosition = value.location.y - 25
                 if !expand {
                     DragXPosition = value.location.x - 40
@@ -61,7 +59,6 @@ public struct QAPanelView<Content: View>: View {
             }
             .onEnded { value in
                 let horizontalLimit = geometry!.size.width - 90
-                print("Limit:", horizontalLimit)
                 if value.location.y < 10 {
                     withAnimation {
                         DragYPosition = 5
@@ -109,15 +106,18 @@ public struct QAPanelView<Content: View>: View {
                                 VStack(alignment: .leading) {
                                     content
                                         .foregroundColor(Color.white)
+                                    Text("Console:")
+                                        .padding(.top, 8)
+                                        .font(.system(size: 10, weight: .medium, design: .default))
+                                        .foregroundColor(Color.white)
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 6)
                                             .foregroundColor(.black.opacity(0.4))
-                                    VStack(alignment: .leading) {
-                                        Text("Console:")
                                         ScrollViewReader { scroll in
                                             ScrollView {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                 ForEach(Array(QAModel.console.enumerated()), id: \.offset) { index, print in
-                                                    Text(print.text)
+                                                    Text(LocalizedStringKey(print.text))
                                                         .foregroundColor(print.color)
                                                         .id(index)
                                                         .onAppear {
@@ -136,6 +136,7 @@ public struct QAPanelView<Content: View>: View {
                                         }
                                 }
                                         .fixedSize(horizontal: false, vertical: true)
+                                
                             }
                             .frame(width: reader.size.width - 100)
                             .padding(10)
@@ -201,6 +202,91 @@ struct AdminPanelView_Previews: PreviewProvider {
                 })
                 Text("Test Content with very very very long text")
                 Text("Test Content inside")
+            }
+            .onAppear {
+                QA.Print("""
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": 54321,
+      "username": "sample_user",
+      "email": "sample_user@example.com",
+      "profile": {
+        "avatar_url": "https://example.com/avatar.jpg",
+        "followers": 1200,
+        "following": 450,
+        "bio": "Mocking the way to success!"
+      }
+    },
+    "posts": [
+      {
+        "id": 123,
+        "title": "Advanced Mocking Techniques",
+        "content": "Exploring the intricacies of generating mock data.",
+        "timestamp": "2023-08-20T10:15:30Z",
+        "comments": [
+          {
+            "id": 987,
+            "user": "commenter1",
+            "text": "Great post, very informative!",
+            "timestamp": "2023-08-20T11:30:45Z"
+          },
+          {
+            "id": 876,
+            "user": "commenter2",
+            "text": "I learned a lot, thanks for sharing.",
+            "timestamp": "2023-08-20T12:45:15Z"
+          }
+        ]
+      },
+      {
+        "id": 456,
+        "title": "Deep Dive into Mock APIs",
+        "content": "Simulating realistic API responses for testing purposes.",
+        "timestamp": "2023-08-19T14:20:00Z",
+        "comments": [
+          {
+            "id": 765,
+            "user": "commenter3",
+            "text": "Looking forward to more content like this!",
+            "timestamp": "2023-08-19T15:10:20Z"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+""")
+                QA.Print("getMyProfile() ✅✅✅✅✅✅✅")
+                QA.Print("""
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": 12345,
+      "username": "mock_user",
+      "email": "mock_user@example.com"
+    },
+    "posts": [
+      {
+        "id": 9876,
+        "title": "Mock Post 1",
+        "content": "This is a mock post generated for testing.",
+        "timestamp": "2023-08-20 15:00:00"
+      },
+      {
+        "id": 5432,
+        "title": "Mock Post 2",
+        "content": "Another mock post for testing purposes.",
+        "timestamp": "2023-08-20 16:30:00"
+      }
+    ]
+  }
+}
+
+""", color: .red)
             }
         }
     }
