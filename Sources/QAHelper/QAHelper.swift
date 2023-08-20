@@ -14,7 +14,7 @@ struct ConsoleModel {
 
 public class QAModel: ObservableObject {
     
-    @Published private var console: [ConsoleModel] = []
+    @Published public var console: [ConsoleModel] = []
     
     public func Print(_ string: String?, color: Color = .white) {
         guard let string else { return }
