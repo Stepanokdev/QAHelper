@@ -22,7 +22,6 @@ public class QAModel: ObservableObject {
             self.console.append(ConsoleModel(text: string, color: color))
         }
     }
-        
 }
 
 public let QA = QAModel()
@@ -112,9 +111,18 @@ public struct QAPanelView<Content: View>: View {
                                 VStack(alignment: .leading) {
                                     content
                                         .foregroundColor(Color.white)
-                                    Text("Console:")
-                                        .padding(.top, 8)
-                                        .font(.system(size: 10, weight: .medium, design: .default))
+                                    HStack {
+                                        Text("Console:")
+                                            .padding(.top, 8)
+                                            .font(.system(size: 10, weight: .medium, design: .default))
+                                        Spacer()
+                                        Button(action: {
+                                            QA.console = []
+                                        }, label: {
+                                            Image(systemName: "trash")
+                                        })
+                                        
+                                    }
                                         .foregroundColor(Color.white)
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 6)
@@ -155,7 +163,7 @@ public struct QAPanelView<Content: View>: View {
                                                     scroll.scrollTo("down", anchor: .top)
                                                 }
                                             }
-                                    }.frame(maxWidth: .infinity, maxHeight: 200, alignment: .leading)
+                                    }.frame(height: 200)
                                         .padding(8)
                                         .foregroundColor(Color.white)
                                     
@@ -275,6 +283,7 @@ public struct QAPanelView<Content: View>: View {
                     .gesture(dragGesture)
                     .onAppear {
                         self.geometry = reader
+                        self.expand = false
                         
                         if let savedDragXPosition = UserDefaults.standard.value(forKey: dragXPositionKey) as? CGFloat {
                             DragXPosition = savedDragXPosition
