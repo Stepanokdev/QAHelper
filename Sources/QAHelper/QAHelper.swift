@@ -131,13 +131,13 @@ public struct QAPanelView<Content: View>: View {
                                                             .id(index)
                                                     }
                                                 }
-                                                    VStack {}.id(999999999)
+                                                    VStack {}.id("down")
                                             }
                                             }.onAppear {
                                                 self.index = QA.console.count
                                                 print(QA.console.count)
                                                 withAnimation {
-                                                    scroll.scrollTo(999999999, anchor: .top)
+                                                    scroll.scrollTo("down", anchor: .top)
                                                 }
                                             }
                                             .onChange(of: self.index) { ind in
@@ -145,14 +145,14 @@ public struct QAPanelView<Content: View>: View {
                                                     if ind != QA.console.count {
                                                         scroll.scrollTo(ind, anchor: .top)
                                                     } else {
-                                                        scroll.scrollTo(999999999, anchor: .top)
+                                                        scroll.scrollTo("down", anchor: .top)
                                                     }
                                                 }
                                             }
                                             .onChange(of: QA.console.count) { _ in
                                                 self.index = QA.console.count
                                                 withAnimation {
-                                                    scroll.scrollTo(999999999, anchor: .top)
+                                                    scroll.scrollTo("down", anchor: .top)
                                                 }
                                             }
                                     }.frame(maxWidth: .infinity, maxHeight: 200, alignment: .leading)
