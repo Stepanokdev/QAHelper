@@ -34,12 +34,18 @@ public struct QAPanelView<Content: View>: View {
     
     @ObservedObject var QAModel: QAModel
     
+    private let dragXPositionKey = "DragXPositionKey"
+    private let dragYPositionKey = "DragYPositionKey"
+    private let fontSizeKey = "fontSizeKey"
+
+    @State var fontSize: CGFloat = 10
     @State var geometry: GeometryProxy?
     @State private var DragXPosition: CGFloat = 0
     @State private var OldDragXPosition: CGFloat = 0
     @State private var DragYPosition: CGFloat = 180
     @State var alignment: Alignment = .topLeading
     @State var padding: Edge.Set = .leading
+    @State var index: Int = 0
     private var idiom: UIUserInterfaceIdiom { UIDevice.current.userInterfaceIdiom }
     
     let content: Content
@@ -117,22 +123,43 @@ public struct QAPanelView<Content: View>: View {
                                             ScrollView {
                                                 VStack(alignment: .leading, spacing: 10) {
                                                 ForEach(Array(QAModel.console.enumerated()), id: \.offset) { index, print in
-                                                    Text(LocalizedStringKey(print.text))
-                                                        .foregroundColor(print.color)
-                                                        .id(index)
-                                                        .onAppear {
-                                                            withAnimation {
-                                                                scroll.scrollTo(index, anchor: .bottom)
-                                                            }
-                                                        }
+                                                    HStack {
+                                                        Rectangle().frame(width: 3)
+                                                            .foregroundColor(index % 2 == 1 ? .clear : Color.white.opacity(0.1))
+                                                        Text(LocalizedStringKey(print.text))
+                                                            .foregroundColor(print.color)
+                                                            .id(index)
+                                                    }
+                                                }
+                                                    VStack {}.id(999999999)
+                                            }
+                                            }.onAppear {
+                                                self.index = QA.console.count
+                                                print(QA.console.count)
+                                                withAnimation {
+                                                    scroll.scrollTo(999999999, anchor: .top)
                                                 }
                                             }
-                                        }
+                                            .onChange(of: self.index) { ind in
+                                                withAnimation {
+                                                    if ind != QA.console.count {
+                                                        scroll.scrollTo(ind, anchor: .top)
+                                                    } else {
+                                                        scroll.scrollTo(999999999, anchor: .top)
+                                                    }
+                                                }
+                                            }
+                                            .onChange(of: QA.console.count) { _ in
+                                                self.index = QA.console.count
+                                                withAnimation {
+                                                    scroll.scrollTo(999999999, anchor: .top)
+                                                }
+                                            }
                                     }.frame(maxWidth: .infinity, maxHeight: 200, alignment: .leading)
                                         .padding(8)
                                         .foregroundColor(Color.white)
                                     
-                                        .font(.system(size: 10, weight: .light, design: .default))
+                                        .font(.system(size: fontSize, weight: .light, design: .default))
                                         }
                                 }
                                         .fixedSize(horizontal: false, vertical: true)
@@ -144,7 +171,7 @@ public struct QAPanelView<Content: View>: View {
                             }
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    VStack {
+                    VStack(alignment: .center) {
                         ZStack {
                             if !expand {
                                 RoundedRectangle(cornerRadius: 10)
@@ -161,16 +188,81 @@ public struct QAPanelView<Content: View>: View {
                                 .frame(width: 40)
                                 .foregroundColor(.white.opacity(0.3))
                         }.padding(.top, expand ? 7.5 : 0).padding(padding, expand ? 7.5 : 0)
-                    }.onTapGesture {
-                        withAnimation {
-                            expand.toggle()
-                            if padding == .trailing {
-                                if expand {
-                                    DragXPosition = 5
-                                } else {
-                                    DragXPosition = OldDragXPosition
+                            .onTapGesture {
+                                withAnimation {
+                                    expand.toggle()
+                                    if padding == .trailing {
+                                        if expand {
+                                            DragXPosition = 5
+                                        } else {
+                                            DragXPosition = OldDragXPosition
+                                        }
+                                    }
                                 }
                             }
+                        if expand {
+                            Spacer()
+                            Button(action: {
+                                if self.fontSize != 16 {
+                                    self.fontSize += 1
+                                }
+                            }, label: {
+                                ZStack {
+                                    HStack(alignment: .center, spacing: -1) {
+                                        Text("A")
+                                            .font(.system(size: 16, weight: .bold))
+                                        Text("+")
+                                            .font(.system(size: 16))
+                                            .padding(.bottom, 2)
+                                    }
+                                }
+                                    .foregroundColor(.white)
+                            }).padding(padding, 11)
+                                .opacity(fontSize == 16 ? 0.3 : 0.9)
+                            Button(action: {
+                                if self.fontSize > 8 {
+                                    self.fontSize -= 1
+                                }
+                            }, label: {
+                                ZStack {
+                                    HStack(alignment: .center, spacing: 0) {
+                                        Text("A")
+                                            .font(.system(size: 16, weight: .bold))
+                                        Text("–")
+                                            .font(.system(size: 16))
+                                            .padding(.bottom, 2)
+                                    }
+                                }
+                                .foregroundColor(.white)
+                            }).padding(padding, 11)
+                                .padding(.bottom, 13)
+                                .opacity(fontSize != 8 ? 0.9 : 0.3)
+                            
+                            Spacer()
+                            Button(action: {
+                                if self.index >= 1 {
+                                    self.index -= 1
+                                }
+                            }, label: {
+                                Image(systemName: "arrowshape.up.circle")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(.white)
+                            }).padding(padding, 11)
+                                .opacity(index == 0 ? 0.3 : 0.9)
+                            Button(action: {
+                                if self.index != QA.console.count {
+                                    self.index += 1
+                                    print(">>>>", index)
+                                }
+                            }, label: {
+                                Image(systemName: "arrowshape.down.circle")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(.white)
+                            }).padding(padding, 11)
+                                .padding(.bottom, 13)
+                                .opacity(index == QA.console.count ? 0.3 : 0.9)
                         }
                     }
                     
@@ -183,6 +275,32 @@ public struct QAPanelView<Content: View>: View {
                     .gesture(dragGesture)
                     .onAppear {
                         self.geometry = reader
+                        
+                        if let savedDragXPosition = UserDefaults.standard.value(forKey: dragXPositionKey) as? CGFloat {
+                            DragXPosition = savedDragXPosition
+                            OldDragXPosition = savedDragXPosition
+                            if DragXPosition > geometry!.size.width / 2 {
+                                    alignment = .topTrailing
+                                    padding = .trailing
+                            }
+                        }
+                        if let savedDragYPosition = UserDefaults.standard.value(forKey: dragYPositionKey) as? CGFloat {
+                            DragYPosition = savedDragYPosition
+                        }
+                        
+                        if let savedFontSize = UserDefaults.standard.value(forKey: fontSizeKey) as? CGFloat {
+                            fontSize = savedFontSize
+                        }
+                    }
+                    .onChange(of: DragXPosition) { x in
+                        UserDefaults.standard.set(x, forKey: dragXPositionKey)
+                    }
+                    .onChange(of: DragYPosition) { y in
+                        UserDefaults.standard.set(y, forKey: dragYPositionKey)
+                    }
+                    .onChange(of: fontSize) { size in
+                        print(size)
+                        UserDefaults.standard.set(size, forKey: fontSizeKey)
                     }
             }
         }
@@ -196,12 +314,12 @@ struct AdminPanelView_Previews: PreviewProvider {
             Color.blue
                 .ignoresSafeArea()
             QAPanelView() {
-              Text("Test Content inside")
-                Button("Test Button", action: {
-                    
-                })
-                Text("Test Content with very very very long text")
-                Text("Test Content inside")
+//              Text("Test Content inside")
+//                Button("Test Button", action: {
+//                    
+//                })
+//                Text("Test Content with very very very long text")
+//                Text("Test Content inside")
             }
             .onAppear {
                 QA.Print("""
@@ -287,6 +405,50 @@ struct AdminPanelView_Previews: PreviewProvider {
 }
 
 """, color: .red)
+            }
+            VStack {
+                Spacer()
+                
+                Button(action: {
+                    
+                    QA.Print("""
+                             "posts": [
+                        {
+                          "id": 9876,
+                          "title": "Mock Post 1",
+                          "content": "This is a mock post generated for testing.",
+                          "timestamp": "2023-08-20 15:00:00"
+                        },
+                              "username": "sample_user",
+                              "email": "sample_user@example.com",
+                              "profile": {
+                                "avatar_url": "https://example.com/avatar.jpg",
+                                "followers": 1200,
+                                "following": 450,
+                                "bio": "Mocking the way to success!"
+                              }
+                            },
+                            "posts": [
+                              {
+                                "id": 123,
+                                "title": "Advanced Mocking Techniques",
+                                "content": "Exploring the intricacies of generating mock data.",
+                                "timestamp": "2023-08-20T10:15:30Z",
+                                "comments": [
+                                  {
+                                    "id": 987,
+                                    "user": "commenter1",
+                                    "text": "Great post, very informative!",
+                                    "timestamp": "2023-08-20T11:30:45Z"
+                                  },
+                                  {
+                                    "id": 876,
+                                    "user": "commenter2"
+                        """)
+                }, label: {
+                    Text("Test")
+                        .foregroundColor(.white)
+                })
             }
         }
     }
