@@ -143,7 +143,6 @@ public struct QAPanelView<Content: View>: View {
                                             }
                                             }.onAppear {
                                                 self.index = QA.console.count
-                                                print(QA.console.count)
                                                 withAnimation {
                                                     scroll.scrollTo("down", anchor: .top)
                                                 }
@@ -261,7 +260,6 @@ public struct QAPanelView<Content: View>: View {
                             Button(action: {
                                 if self.index != QA.console.count {
                                     self.index += 1
-                                    print(">>>>", index)
                                 }
                             }, label: {
                                 Image(systemName: "arrowshape.down.circle")
@@ -308,7 +306,6 @@ public struct QAPanelView<Content: View>: View {
                         UserDefaults.standard.set(y, forKey: dragYPositionKey)
                     }
                     .onChange(of: fontSize) { size in
-                        print(size)
                         UserDefaults.standard.set(size, forKey: fontSizeKey)
                     }
             }
